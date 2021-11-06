@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/subosito/gotenv"
-	"os"
 )
 
 func main()  {
@@ -14,10 +13,9 @@ func main()  {
 	g.Use(CORSMiddleware())
 	g.Use(gin.Logger())
 	g.Use(gin.Recovery())
-	grabWithMap()
-	//ConnectToDatabase()
-	//jobs()
-	_ = g.Run(":"+os.Getenv("APP_PORT"))
+	ConnectToDatabase()
+	jobs()
+	_ = g.Run(":8080")
 }
 
 func CORSMiddleware() gin.HandlerFunc {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/gocolly/colly"
 	"github.com/jasonlvhit/gocron"
@@ -16,6 +15,7 @@ var citiesUrl = map[string]string{
 }
 
 type Room struct {
+	gorm.Model
 	Price         string
 	PricePeriod   string
 	PriceCurrency string
@@ -23,12 +23,13 @@ type Room struct {
 	City          string
 	Districts     string
 	Url           string
+	ScraperName   string
 }
 
 var DB *gorm.DB = nil
 var err error = nil
 
-var rooms = make([]Room, 0)
+//var rooms = make([]Room, 0)
 
 /**
 * connect with data base with ..env file params
@@ -39,57 +40,67 @@ func ConnectToDatabase() {
 		DB, err = gorm.Open("mysql", os.Getenv("DATABASE_USERNAME")+":"+os.Getenv("DATABASE_PASSWORD")+"@tcp("+os.Getenv("DATABASE_HOST")+":"+os.Getenv("DATABASE_PORT")+")/"+os.Getenv("DATABASE_NAME")+"?charset=utf8mb4&parseTime=True&loc=Local&character_set_server=utf8mb4")
 	}
 	if err != nil {
-		fmt.Println("Connect To Database Error", err.Error())
+		fmt.Println("Connect To Database Error:", err.Error())
 		return
 	}
 	debug, _ := strconv.ParseBool(os.Getenv("DEBUG_DATABASE"))
 	if os.Getenv("APP_ENV") == "local" {
 		DB.LogMode(debug)
 	}
-	DB.DropTableIfExists()
+	DB.DropTableIfExists(&Room{})
+	DB.AutoMigrate(&Room{})
 }
 
 func grabWithMap() {
-	fmt.Println("hi")
 	for _, url := range citiesUrl {
-		fmt.Println("url", url)
 		c := colly.NewCollector()
 		c.OnHTML(`div[id=app-root]`, func(e *colly.HTMLElement) {
 			e.ForEachWithBreak("div ", func(i int, el *colly.HTMLElement) bool {
 				if el.Attr("class") == "MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-3" {
 					el.ForEach("div ", func(i int, el *colly.HTMLElement) {
 						if el.Attr("class") == "MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-sm-12 MuiGrid-grid-md-4" {
-							room := Room{}
-							room.Url = os.Getenv("BASE_SCRAPER_URL") + el.ChildAttr("a", "href")
+							room := Room{
+								ScraperName: os.Getenv("SCRAPER_NAME"),
+							}
+							url := os.Getenv("BASE_SCRAPER_URL") + el.ChildAttr("a", "href")
+							DB.Where("url = ?", url).First(&room)
+							if room.ID != 0 {
+								goto endOfIteration
+							}
+							room.Url = url
 							urlParts := strings.Split(strings.Split(room.Url, "?")[0], "/")
 							room.City = urlParts[len(urlParts)-2]
 							room.Districts = urlParts[len(urlParts)-1]
-							el.ForEach("ul ", func(i int, el *colly.HTMLElement) {
+							el.ForEachWithBreak("ul ", func(i int, el *colly.HTMLElement) bool {
 								if el.Attr("class") == "MuiList-root makeStyles-infoContainer-221 MuiList-padding" {
-									el.ForEach("li ", func(i int, el *colly.HTMLElement) {
+									el.ForEachWithBreak("li ", func(i int, el *colly.HTMLElement) bool {
 										switch i {
 										case 0:
 											room.Price = el.ChildAttr("meta[itemprop=price]", "content")
 											room.PriceCurrency = el.ChildAttr("meta[itemprop=priceCurrency]", "content")
 											el.ForEach("span ", func(i int, el *colly.HTMLElement) {
-												if el.Attr("class") == "MuiTypography-root makeStyles-billsContainer-226 makeStyles-caption-52 makeStyles-overflow-initial-35 makeStyles-color-default-38 MuiTypography-caption MuiTypography-displayBlock"{
+												if el.Attr("class") == "MuiTypography-root makeStyles-billsContainer-226 makeStyles-caption-52 makeStyles-overflow-initial-35 makeStyles-color-default-38 MuiTypography-caption MuiTypography-displayBlock" {
 													room.PricePeriod = strings.Split(strings.Split(el.Text, "/")[1], " ")[0]
 												}
 											})
 											break
 										case 1:
 											room.Type = strings.Split(el.Text, "•")[0]
-											break
-
+											return false
 
 										}
+										return true
 									})
+									return false
 								}
+								return true
 							})
-							x, _ := json.Marshal(room)
-							fmt.Println("room", i+1, string(x))
-							rooms = append(rooms, room)
+							DB.Create(&room)
+							//x, _ := json.Marshal(room)
+							//fmt.Println("room", i+1, string(x))
+							//rooms = append(rooms, room)
 						}
+						endOfIteration:
 					})
 					return false
 				}
@@ -104,7 +115,6 @@ func grabWithMap() {
 			fmt.Println("errr", errr.Error())
 		}
 	}
-	fmt.Println("bye")
 }
 
 func jobs() {
