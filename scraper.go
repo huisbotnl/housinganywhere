@@ -47,8 +47,6 @@ func ConnectToDatabase() {
 	if os.Getenv("APP_ENV") == "local" {
 		DB.LogMode(debug)
 	}
-	DB.DropTableIfExists(&Room{})
-	DB.AutoMigrate(&Room{})
 }
 
 func grabWithMap() {
