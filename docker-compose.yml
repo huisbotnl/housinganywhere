@@ -1,0 +1,12 @@
+version: "2"
+services:
+
+  housinganywhere:
+    build: .
+    env_file: .env
+    container_name: housinganywhere
+    ports:
+      - '${APP_PORT}:8080'
+    volumes:
+          - ./:/go/src/housinganywhere
+
