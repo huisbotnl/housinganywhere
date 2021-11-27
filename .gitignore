@@ -1,4 +1,5 @@
 housinganywhere
 housinganywhere.exe
 .idea
-
+docker-compose.yml
+Dockerfile
