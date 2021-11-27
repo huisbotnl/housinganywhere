@@ -109,7 +109,8 @@ func grabWithMap() {
 			fmt.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
 		})
 		c.OnRequest(func(request *colly.Request) {
-			fmt.Println("visiting:", request.URL.String())
+			(*request.Headers)["User-Agent"] = []string{"*"}
+			fmt.Println("Visiting", request.URL)
 		})
 		errr := c.Visit(os.Getenv("BASE_SCRAPER_URL") + url)
 		if errr != nil {
