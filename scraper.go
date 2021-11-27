@@ -16,14 +16,14 @@ var citiesUrl = map[string]string{
 
 type Room struct {
 	gorm.Model
-	Price         string
-	PricePeriod   string
-	PriceCurrency string
-	Type          string
-	City          string
-	Districts     string
-	Url           string
-	ScraperName   string
+	Price         string `json:"price" gorm:"type:varchar(10);index"`
+	PricePeriod   string `json:"price_period" gorm:"type:varchar(10);index"`
+	PriceCurrency string `json:"price_currency" gorm:"type:varchar(5);index"`
+	Type          string `json:"type" gorm:"type:varchar(20);index"`
+	City          string `json:"city" gorm:"type:varchar(30);index"`
+	Districts     string `json:"districts" gorm:"type:varchar(50);index"`
+	Url           string `json:"url" gorm:"type:varchar(100);index"`
+	ScraperName   string `json:"scraper_name" gorm:"type:varchar(20);index"`
 }
 
 var DB *gorm.DB = nil
@@ -107,6 +107,9 @@ func grabWithMap() {
 		})
 		c.OnError(func(r *colly.Response, err error) {
 			fmt.Println("Request URL:", r.Request.URL, "failed with response:", r, "\nError:", err)
+		})
+		c.OnRequest(func(request *colly.Request) {
+			fmt.Println("visiting:", request.URL.String())
 		})
 		errr := c.Visit(os.Getenv("BASE_SCRAPER_URL") + url)
 		if errr != nil {
