@@ -11,6 +11,7 @@ func main()  {
 
 	g := gin.Default()
 	ConnectToDatabase()
+	setupDataMaps()
 	jobs()
 	_ = g.Run(":8080")
 }
