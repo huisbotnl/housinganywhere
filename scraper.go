@@ -145,6 +145,6 @@ func grabWithMap() {
 }
 
 func jobs() {
-	gocron.Every(2).Hours().From(gocron.NextTick()).Do(grabWithMap)
+	gocron.Every(1).Hours().From(gocron.NextTick()).Do(grabWithMap)
 	gocron.Start()
 }
