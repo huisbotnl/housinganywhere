@@ -32,9 +32,11 @@ func grabWithMap() {
 						if ell.Attr("class") == "MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-sm-12 MuiGrid-grid-md-4" {
 							room := Room{}
 							roomUrl := os.Getenv("BASE_SCRAPER_URL") + ell.ChildAttr("a", "href")
+							price := strings.Trim(ell.ChildText("h3"), " ")
+							price = strings.Trim(price, "€")
 							DB.Where("url = ?", roomUrl).First(&room)
 							if room.ID == 0 {
-								roomsUrl[roomUrl] = roomUrl
+								roomsUrl[roomUrl] = price
 							}
 						}
 					})
@@ -54,7 +56,7 @@ func grabWithMap() {
 		if errr != nil {
 			fmt.Println("errr", errr.Error())
 		}
-		for _, roomUrl := range roomsUrl {
+		for roomUrl, price := range roomsUrl {
 			c := colly.NewCollector()
 			c.OnHTML(`div[class=makeStyles-contentContainer-1]`, func(e *colly.HTMLElement) {
 				room := Room{
@@ -81,7 +83,7 @@ func grabWithMap() {
 								room.SetCity(ell.Text)
 							}
 							if i == 6 {
-								room.SetDistrict(ell.Text)
+								room.SetDistrict(ell.Text, room.CityId)
 							}
 							return true
 						})
@@ -93,9 +95,9 @@ func grabWithMap() {
 								return false
 							}
 							if i == 0 {
-								priceData := strings.Split(ell.Text, "€")
+								//priceData := strings.Split(ell.Text, "€")
 								room.PriceCurrency = "EUR"
-								room.Price = priceData[0]
+								room.Price = price
 							}
 							if i == 8 {
 								room.SetType(ell.Text)
