@@ -14,10 +14,10 @@ var roomsUrl = make(map[string]string)
 func setupDataMaps() {
 	setupAmenitiesMap()
 	setupBedroomsMap()
-	setupCitiesMap()
+	//setupCitiesMap()
 	setupFacilitiesMap()
 	setupFurnituresMap()
-	setupNeighborhoodsMap()
+	//setupNeighborhoodsMap()
 	setupTypesMap()
 }
 
@@ -60,18 +60,21 @@ func grabWithMap() {
 			c := colly.NewCollector()
 			c.OnHTML(`div[class=makeStyles-contentContainer-1]`, func(e *colly.HTMLElement) {
 				room := Room{
-					Url:         roomUrl,
-					ScraperName: os.Getenv("SCRAPER_NAME"),
+					Url:           roomUrl,
+					ScraperName:   os.Getenv("SCRAPER_NAME"),
+					PricePeriod:   "month",
+					PriceCurrency: "month",
+					Price:         price,
 				}
 				e.ForEachWithBreak("div", func(i int, el *colly.HTMLElement) bool {
 					if i == 3 {
-						el.ForEachWithBreak("span", func(i int, ell *colly.HTMLElement) bool {
-							if i == 6 {
-								room.PricePeriod = strings.Split(ell.Text, " ")[0]
-								return false
-							}
-							return true
-						})
+						//el.ForEachWithBreak("span", func(i int, ell *colly.HTMLElement) bool {
+						//	if i == 6 {
+						//		room.PricePeriod = strings.Split(ell.Text, " ")[0]
+						//		return false
+						//	}
+						//	return true
+						//})
 						el.ForEachWithBreak("li", func(i int, ell *colly.HTMLElement) bool {
 							if i < 2 || (i > 2 && i < 6) {
 								return true
@@ -88,19 +91,27 @@ func grabWithMap() {
 							return true
 						})
 						el.ForEachWithBreak("p", func(i int, ell *colly.HTMLElement) bool {
-							if i > 0 && i < 8 {
-								return true
-							}
-							if i > 8 {
-								return false
-							}
-							if i == 0 {
+							//if i > 0 && i < 8 {
+							//	return true
+							//}
+							//if i < 8 {
+							//	return true
+							//}
+							//if i > 8 {
+							//	return false
+							//}
+							//if i == 0 {
 								//priceData := strings.Split(ell.Text, "€")
-								room.PriceCurrency = "EUR"
-								room.Price = price
-							}
-							if i == 8 {
-								room.SetType(ell.Text)
+								//room.PriceCurrency = "EUR"
+								//room.Price = price
+							//}
+							//if i == 8 {
+							//	room.SetType(ell.Text)
+							//}
+							if data, ok := typeMap[ell.Text] ; ok {
+								room.TypeId = data["id"].(int)
+								room.Type = data["name"].(string)
+								return false
 							}
 							return true
 						})

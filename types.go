@@ -1,6 +1,9 @@
 package main
 
 var typeMap = map[string]map[string]interface{}{
+	"Private room in apartment": {
+		"key": "private_room",
+	},
 	"Private room in house": {
 		"key": "private_room",
 	},
