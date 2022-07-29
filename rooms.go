@@ -155,7 +155,7 @@ func (room *Room) Create() {
 	}
 	if
 	room.TypeId != 0 &&
-		room.DistrictsId != 0 &&
+		//room.DistrictsId != 0 &&
 		room.CityId != 0 &&
 		room.BedroomId != 0 &&
 		room.FurnitureId != 0 {

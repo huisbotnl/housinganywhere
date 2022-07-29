@@ -76,18 +76,20 @@ func grabWithMap() {
 						//	return true
 						//})
 						el.ForEachWithBreak("li", func(i int, ell *colly.HTMLElement) bool {
-							if i < 2 || (i > 2 && i < 6) {
-								return true
-							}
-							if i > 6 {
-								return false
-							}
+							//if i < 2 || (i > 2 && i < 6) {
+							//	return true
+							//}
+							//if i > 6 {
+							//	return false
+							//}
 							if i == 2 {
 								room.SetCity(ell.Text)
+							}else {
+								return false
 							}
-							if i == 6 {
-								room.SetDistrict(ell.Text, room.CityId)
-							}
+							//if i == 6 {
+							//	room.SetDistrict(ell.Text, room.CityId)
+							//}
 							return true
 						})
 						el.ForEachWithBreak("p", func(i int, ell *colly.HTMLElement) bool {
